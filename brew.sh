@@ -100,6 +100,12 @@ brew install tree
 brew install vbindiff
 brew install webkit2png
 brew install zopfli
+ 
+# development
+brew install watchman
+brew install yarn
+brew install ruby
+brew install hub
 
 # Remove outdated versions from the cellar.
 brew cleanup
