@@ -206,3 +206,22 @@ function o() {
 function tre() {
 	tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX;
 }
+
+# minor version, push and publish
+function mpp() {
+	npm version minor && git push -u && npm publish
+}
+
+# patch, push and publish
+function ppp() {
+	npm version patch && git push -u && npm publish
+}
+
+# create a new es6 module
+function newmodule () {
+	git clone https://github.com/tradle/module-template "$@"
+	cd "$1"
+	git remote remove origin
+	#sed -i bak -e "s|module-template|${1}|g" package.json
+	yarn
+}
