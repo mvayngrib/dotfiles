@@ -1,0 +1,11 @@
+// These settings override both User and Default settings for the Ruby syntax
+{
+	"extensions": [ 
+		"Guardfile", 
+		"Rakefile", 
+		"Gemfile",
+		"Gymfile", 
+		"Fastfile", 
+		"Matchfile" 
+	]
+}
