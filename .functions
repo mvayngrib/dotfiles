@@ -221,7 +221,8 @@ function ppp() {
 function newmodule () {
 	git clone https://github.com/tradle/module-template "$@"
 	cd "$1"
-	git remote remove origin
+	rm -rf .git
+	git init
 	#sed -i bak -e "s|module-template|${1}|g" package.json
 	yarn
 }
