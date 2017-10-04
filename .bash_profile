@@ -49,3 +49,6 @@ complete -o "nospace" -W "Contacts Calendar Dock Finder Mail Safari iTunes Syste
 
 # alias hub to git
 eval "$(hub alias -s)"
+
+# enable desktop notifications on long running tasks
+# eval "$(ntfy shell-integration)"
