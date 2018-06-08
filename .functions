@@ -1,4 +1,20 @@
-#!/usr/bin/env bash
+# Simple calculator
+function calc() {
+	local result="";
+	result="$(printf "scale=10;$*\n" | bc --mathlib | tr -d '\\\n')";
+	#                       └─ default (when `--mathlib` is used) is 20
+	#
+	if [[ "$result" == *.* ]]; then
+		# improve the output for decimal numbers
+		printf "$result" |
+		sed -e 's/^\./0./'        `# add "0" for cases like ".5"` \
+		    -e 's/^-\./-0./'      `# add "0" for cases like "-.5"`\
+		    -e 's/0*$//;s/\.$//';  # remove trailing zeros
+	else
+		printf "$result";
+	fi;
+	printf "\n";
+}
 
 # Create a new directory and enter it
 function mkd() {
@@ -16,8 +32,8 @@ function targz() {
 	tar -cvf "${tmpFile}" --exclude=".DS_Store" "${@}" || return 1;
 
 	size=$(
-		stat -f"%z" "${tmpFile}" 2> /dev/null; # macOS `stat`
-		stat -c"%s" "${tmpFile}" 2> /dev/null;  # GNU `stat`
+		stat -f"%z" "${tmpFile}" 2> /dev/null; # OS X `stat`
+		stat -c"%s" "${tmpFile}" 2> /dev/null # GNU `stat`
 	);
 
 	local cmd="";
@@ -32,16 +48,10 @@ function targz() {
 		fi;
 	fi;
 
-	echo "Compressing .tar ($((size / 1000)) kB) using \`${cmd}\`…";
+	echo "Compressing .tar using \`${cmd}\`…";
 	"${cmd}" -v "${tmpFile}" || return 1;
 	[ -f "${tmpFile}" ] && rm "${tmpFile}";
-
-	zippedSize=$(
-		stat -f"%z" "${tmpFile}.gz" 2> /dev/null; # macOS `stat`
-		stat -c"%s" "${tmpFile}.gz" 2> /dev/null; # GNU `stat`
-	);
-
-	echo "${tmpFile}.gz ($((zippedSize / 1000)) kB) created successfully.";
+	echo "${tmpFile}.gz created successfully.";
 }
 
 # Determine size of a file or total size of a directory
@@ -54,7 +64,7 @@ function fs() {
 	if [[ -n "$@" ]]; then
 		du $arg -- "$@";
 	else
-		du $arg .[^.]* ./*;
+		du $arg .[^.]* *;
 	fi;
 }
 
@@ -81,7 +91,7 @@ function gitio() {
 		echo "Usage: \`gitio slug url\`";
 		return 1;
 	fi;
-	curl -i https://git.io/ -F "url=${2}" -F "code=${1}";
+	curl -i http://git.io/ -F "url=${2}" -F "code=${1}";
 }
 
 # Start an HTTP server from a directory, optionally specifying the port
@@ -91,6 +101,24 @@ function server() {
 	# Set the default Content-Type to `text/plain` instead of `application/octet-stream`
 	# And serve everything as UTF-8 (although not technically correct, this doesn’t break anything for binary files)
 	python -c $'import SimpleHTTPServer;\nmap = SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map;\nmap[""] = "text/plain";\nfor key, value in map.items():\n\tmap[key] = value + ";charset=UTF-8";\nSimpleHTTPServer.test();' "$port";
+}
+
+# Start a PHP server from a directory, optionally specifying the port
+# (Requires PHP 5.4.0+.)
+function phpserver() {
+	local port="${1:-4000}";
+	local ip=$(ipconfig getifaddr en1);
+	sleep 1 && open "http://${ip}:${port}/" &
+	php -S "${ip}:${port}";
+}
+
+# Compare original and gzipped file size
+function gz() {
+	local origsize=$(wc -c < "$1");
+	local gzipsize=$(gzip -c "$1" | wc -c);
+	local ratio=$(echo "$gzipsize * 100 / $origsize" | bc -l);
+	printf "orig: %d bytes\n" "$origsize";
+	printf "gzip: %d bytes (%2.2f%%)\n" "$gzipsize" "$ratio";
 }
 
 # Syntax-highlight JSON strings or files
@@ -173,9 +201,28 @@ function getcertnames() {
 # opens the given location
 function s() {
 	if [ $# -eq 0 ]; then
-		subl .;
+		dir=$(pwd)
+		projectFile=$(find "$dir" -name "*.sublime-project" -maxdepth 1)
+		echo $projectFile
+
+		if [ $projectFile ]
+		then
+		    subl "$projectFile"
+		else
+		    subl "$dir"
+		fi
 	else
 		subl "$@";
+	fi;
+}
+
+# `a` with no arguments opens the current directory in Atom Editor, otherwise
+# opens the given location
+function a() {
+	if [ $# -eq 0 ]; then
+		atom .;
+	else
+		atom "$@";
 	fi;
 }
 
@@ -207,22 +254,59 @@ function tre() {
 	tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX;
 }
 
-# minor version, push and publish
 function mpp() {
 	npm version minor && git push -u && npm publish
 }
 
-# patch, push and publish
 function ppp() {
 	npm version patch && git push -u && npm publish
 }
 
-# create a new es6 module
 function newmodule () {
 	git clone https://github.com/tradle/module-template "$@"
 	cd "$1"
-	rm -rf .git
-	git init
+	git remote remove origin
+        rm -rf .git
+        git init
+        git remote add origin "https://github.com/tradle/$@"
 	#sed -i bak -e "s|module-template|${1}|g" package.json
 	yarn
+}
+
+function minutesago () {
+	CODE="console.log(Date.now() - $1 * 60 * 1000)"
+	node -e "$CODE"
+}
+
+#!/bin/sh
+#
+# Runs script, and prints a notification with growl when it finishes
+#
+#function notify () {
+#
+#	$*
+#	growlnotify -m "Script '$*' completed" -s "Background script notification" &
+#}
+
+capture() {
+    sudo dtrace -p "$1" -qn '
+        syscall::write*:entry
+        /pid == $target && arg0 == 1/ {
+            printf("%s", copyinstr(arg1, arg2));
+        }
+    '
+}
+
+clean_xcode() {
+	sudo rm -rf /Applications/Xcode.app/Contents/Developer/Platforms/AppleTV*
+	sudo rm -rf /Applications/Xcode.app/Contents/Developer/Platforms/Watch*
+	sudo rm -rf /Applications/Xcode.app/Contents/Developer/Platforms/Mac*
+	sudo rm -rf /Library/Developer/CoreSimulator/Profiles/Runtimes/tvOS*
+	echo "check here for more stuff to remove:"
+	echo ""
+	sudo du -sh ~/Library/Developer/Xcode/iOS\ DeviceSupport/*
+	echo ""
+	sudo du -sh ~/Library/Developer/Xcode/DerivedData/*
+	echo ""
+	sudo du -sh -t 100m ~/Library/Developer/CoreSimulator/Devices/*
 }
