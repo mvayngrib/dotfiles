@@ -302,6 +302,7 @@ clean_xcode() {
 	sudo rm -rf /Applications/Xcode.app/Contents/Developer/Platforms/Watch*
 	sudo rm -rf /Applications/Xcode.app/Contents/Developer/Platforms/Mac*
 	sudo rm -rf /Library/Developer/CoreSimulator/Profiles/Runtimes/tvOS*
+	sudo rm -rf ~/Library/Caches/com.apple.dt.XCode
 	echo "check here for more stuff to remove:"
 	echo ""
 	sudo du -sh ~/Library/Developer/Xcode/iOS\ DeviceSupport/*
@@ -309,4 +310,21 @@ clean_xcode() {
 	sudo du -sh ~/Library/Developer/Xcode/DerivedData/*
 	echo ""
 	sudo du -sh -t 100m ~/Library/Developer/CoreSimulator/Devices/*
+}
+
+fix_rotation() {
+	if [[ ! -n "$1" ]] || [[ ! -n "$2" ]]
+	then
+		echo "expected input and output image paths"
+		exit 1
+	fi
+
+	convert "$1" -auto-orient "$2"
+}
+
+ytdlmp3() {
+	local video="$1"
+	local output="$2"
+	echo "downloading video $video to file $output"
+	ytdl --filter audioonly "$video" | ffmpeg -i pipe:0 -b:a 192K -vn "$output"
 }
