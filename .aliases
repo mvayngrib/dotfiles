@@ -32,10 +32,10 @@ npmGitInstall() {
 
 alias glone=gitClone
 alias ni=inspectNode
-alias nd="node --inspect --debug"
-alias ndb="node --inspect --debug-brk"
-alias md="mocha --inspect --debug"
-alias mdb="mocha --inspect --debug-brk"
+alias nd="node --inspect"
+alias ndb="node --inspect-brk"
+alias md="mocha --inspect"
+alias mdb="mocha --inspect-brk"
 alias gi="npmGitInstall"
 
 # docker
