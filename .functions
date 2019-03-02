@@ -297,6 +297,14 @@ capture() {
     '
 }
 
+myec2() {
+	ssh ec2-user@ec2-174-129-133-66.compute-1.amazonaws.com
+}
+
+vpn() {
+	sshuttle --dns -r ec2-user@ec2-174-129-133-66.compute-1.amazonaws.com 0/0
+}
+
 clean_xcode() {
 	sudo rm -rf /Applications/Xcode.app/Contents/Developer/Platforms/AppleTV*
 	sudo rm -rf /Applications/Xcode.app/Contents/Developer/Platforms/Watch*
@@ -326,5 +334,37 @@ ytdlmp3() {
 	local video="$1"
 	local output="$2"
 	echo "downloading video $video to file $output"
-	ytdl --filter audioonly "$video" | ffmpeg -i pipe:0 -b:a 192K -vn "$output"
+	ytdl --filter audioonly "$video" | ffmpeg -i pipe:0 -b:a 192K -vn "$HOME/Downloads/$output"
+}
+
+clean_xcode() {
+	echo "moving AppleTV and Apple Watch Platforms to trash"
+	sudo mv /Applications/Xcode.app/Contents/Developer/Platforms/AppleTV* \
+		/Applications/Xcode.app/Contents/Developer/Platforms/Watch* \
+		~/.Trash/
+}
+
+free_space() {
+	clean_xcode &
+	brew cleanup &
+ 	pod cache clean --all &
+	rm -rf ~/.Trash/* &
+	wait
+}
+
+backup_itunes_to_s3() {
+	aws --profile mv s3 sync "$HOME/Music/iTunes/iTunes Media" s3://music.mv/iTunes
+}
+
+mount_mvayngrib_com() {
+	mkdir -p ~/mvayngrib.com
+	AWS_PROFILE=mv goofys -f mvayngrib.com ~/mvayngrib.com
+}
+
+findbook() {
+  find ~/Books/ -iname "*$1*.mobi"
+}
+
+openbook() {
+  find ~/Books/ -iname "*$1*.mobi" | head -n 1 | xargs open
 }
