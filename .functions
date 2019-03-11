@@ -337,6 +337,13 @@ ytdlmp3() {
 	ytdl --filter audioonly "$video" | ffmpeg -i pipe:0 -b:a 192K -vn "$HOME/Downloads/$output"
 }
 
+youtubemp3() {
+	local video="$1"
+	local title=$(ytdl -j "$video" | jq -r .title | sanitize-filename)
+	local output="$HOME/Downloads/$title.mp3"
+	ytdl --filter audioonly "$video" | ffmpeg -i pipe:0 -b:a 192K -vn "$output"
+}
+
 clean_xcode() {
 	echo "moving AppleTV and Apple Watch Platforms to trash"
 	sudo mv /Applications/Xcode.app/Contents/Developer/Platforms/AppleTV* \

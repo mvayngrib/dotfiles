@@ -1,0 +1,1 @@
+npm i -g ytdl mvayngrib/sanitize-filename nodemon static-serves
