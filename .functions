@@ -1,3 +1,13 @@
+function confirm() {
+	read -p "$1. Continue? " -n 1 -r
+	if [[ $REPLY =~ ^[Yy]$ ]]
+	then
+		echo 'y'
+	else
+		echo 'n'
+	fi
+}
+
 # Simple calculator
 function calc() {
 	local result="";
@@ -374,4 +384,28 @@ findbook() {
 
 openbook() {
   find ~/Books/ -iname "*$1*.mobi" | head -n 1 | xargs open
+}
+
+uploadtos3() {
+	local category="$1"
+	local from="$2"
+	local to="mvayngrib.com/$category/$3"
+	local ok=$(confirm "will upload $from to $to")
+	if [[ $ok = 'y' ]]
+	then
+		echo # print new line
+		aws --profile mv s3 cp $from s3://$to
+	fi
+}
+
+uploadshow() {
+	uploadtos3 shows $1 $2
+}
+
+uploadmovie() {
+	uploadtos3 movies $1 $2
+}
+
+uploadbook() {
+	uploadtos3 books $1 $2
 }
