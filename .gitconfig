@@ -163,4 +163,4 @@
 # URL shorthands
 [url "https://"]
     insteadOf = git://
-git stat
+
