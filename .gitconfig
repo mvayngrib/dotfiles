@@ -164,3 +164,8 @@
 [url "https://"]
     insteadOf = git://
 
+[user]
+	name = Mark Vayngrib
+	email = mark@tradle.io
+[credential]
+	helper = osxkeychain
