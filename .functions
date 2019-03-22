@@ -383,7 +383,7 @@ findbook() {
 }
 
 openbook() {
-  find ~/Books/ -iname "*$1*.mobi" | head -n 1 | xargs open
+  find ~/Books/ -iname "*$1*.mobi" | head -n 1 | xargs -0 open
 }
 
 uploadtos3() {

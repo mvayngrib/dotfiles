@@ -109,6 +109,9 @@ brew install watchman
 brew install ruby
 brew install hub
 
+brew install jq
+brew install awcli
+
 # databases
 brew install mongodb
 
